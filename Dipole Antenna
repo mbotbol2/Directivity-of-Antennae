@@ -18,7 +18,7 @@ r_obs = 1000; % Large radius (far-field)
 t = 0; % Time (arbitrary for time-harmonic fields)
 
 % Sweep theta from 0 to pi
-theta = linspace(0, pi, 360);
+theta = linspace(0, 2*pi, 360);
 psi_theta = zeros(size(theta));
 
 % Loop over theta angles
