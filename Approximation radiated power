@@ -1,0 +1,33 @@
+%% Function definition
+function val = f(x, k, l)
+    % Prevent division by zero
+    if abs(sin(x)) < 1e-10
+        val = 1;
+        disp(val)
+    else
+        val = (1 / sin(x)) * (cos(cos(x) * k * l / 2) - cos(k * l / 2))^2;
+    end
+end
+
+%% Approximation Power Radiated
+% Parameters
+I0 = 1;  
+omega = 1e8;
+c = 3e8;
+k = omega / c;                   
+l = pi / k;            
+N = 200;
+eta = 376.7
+
+% Constant factor
+Const = (eta / (4 * pi)) * I0^2;
+
+% Numerical integration using Riemann sum
+P_rad = 0;
+for n = 1:N
+    x = n * (pi / N);  % integration over theta = 0 to pi
+    P_rad = P_rad + Const * f(x, k, l) * (pi / N);
+    disp(['power:', num2str(P_rad)])
+end
+
+disp(['The approximated power is: ', num2str(P_rad, '%.2f'), ' W'])
