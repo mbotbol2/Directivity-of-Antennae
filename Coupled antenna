@@ -1,0 +1,94 @@
+import math
+import cmath
+from sympy import symbols, I, exp, diff, lambdify
+import numpy as np
+
+
+"All lengths given in units of the wavelength lambda"
+L_1 = [0.6, 0.5, 0.45, 0.45, 0.45] #antenna lengths. 
+L_2 =[0.001, 0.001, 0.001, 0.001, 0.001] #antenna radii
+L_3 = [(0,0), (0.5,0), (1,0), (1.5,0), (2,0)] #antenna position
+
+def G(p, q, k, z, z_1, L_1, L_2, L_3):
+    """
+
+    Parameters
+    ----------
+    p, q: antenna indexes
+    k : wavenumber
+    z : 
+    z_1 : z'
+
+    Returns so called impedance kernel
+    -------
+    """
+    #wavelength = 2*math.pi/k
+    #L_1 = L_1*wavelength
+    #L_2 = L_2*wavelength
+    #L_3 = L_3*wavelength
+    if p == q:
+        d = L_2[p]
+    else:
+        d = (L_3[p][1] - L_3[q][1], L_3[p][2] - L_3[q][2])
+        
+    R = math.sqrt((z - z_1)**2 + d^2)
+    return (cmath.exp(complex(0, -k*R)))/R
+
+
+def Z(p, q, k):
+    global L_1, L_2, L_3
+    wavelength = 2*math.pi/k
+    L_1 = L_1*wavelength
+    L_2 = L_2*wavelength
+    L_3 = L_3*wavelength
+    h_p = L_1[p]/2
+    h_q = L_1[q]/2
+    N = 100 #even number
+    Z = 0
+    eta = 376.7 #sqrt(mu_0/epsilon_0)
+    
+    for n in range(-N/2, N/2+1):
+        z = (n*h_p)/N
+        dz = h_p/N
+        for m in range(-N/2, N/2+1):
+              z_1 = (m*h_q)/N
+              dz_1 = h_q/N
+              g = G(p, q, k, z, z_1, L_1, L_2, L_3)
+              # Define the symbolic variable
+              z_sym = symbols('z')
+
+              Y = G(p, q, k, z_sym, z_1, L_1, L_2, L_3)
+              # Compute the second derivative symbolically
+              d2G_dz2 = diff(G, z_sym, 2)
+
+              # Convert to a numerical function using lambdify
+              d2G_dz2_func = lambdify(z_sym, d2G_dz2, modules="numpy")
+
+              G_sec =  d2G_dz2_func(z)
+                  
+              Z += complex(0, eta/(4*math.pi*k))*math.sin(k*(h_p - abs(z)))**math.sin(k*(h_q - abs(z_1)))*(g*k**2+G_sec)*dz*dz_1
+              
+    return Z
+
+
+
+"""
+from sympy import symbols, I, exp, diff, lambdify
+import numpy as np
+
+# Define the symbolic variable
+z_sym = symbols('z')
+
+
+# Compute the second derivative symbolically
+d2G_dz2 = diff(G, z_sym, 2)
+
+# Convert to a numerical function using lambdify
+d2G_dz2_func = lambdify(z_sym, d2G_dz2, modules="numpy")
+
+
+# Define the wrapper function
+def second_derivative_at_z(z_value):
+    return d2G_dz2_func(z_value)
+
+"""
