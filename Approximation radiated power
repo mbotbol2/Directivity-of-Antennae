@@ -9,6 +9,7 @@ function val = f(x, k, l)
     end
 end
 
+
 %% Approximation Power Radiated
 % Parameters
 I0 = 1;  
@@ -31,3 +32,54 @@ for n = 1:N
 end
 
 disp(['The approximated power is: ', num2str(P_rad, '%.2f'), ' W'])
+
+%Directivity
+theta = linspace(0, pi, 1000);
+U = ((eta*I0^2)./8*pi^2)*(1./sin(theta).^2) .* (cos(cos(x) .* k .* l / 2) - cos(k .* l / 2)).^2;
+D = (4*pi*U)./P_rad;
+
+figure;
+plot(rad2deg(theta), intensity, 'b-', 'LineWidth', 2);
+xlabel('\theta (degrees)');
+ylabel('Directivity');
+title('Directivity (0° to 180°)');
+xlim([0 180]);
+%ylim([0 1.1]);  % Add some headroom
+grid on;
+
+
+
+%% Plot integrand vs approximated integrand  
+theta = linspace(0, pi, 500);
+omega = 1e8;
+c = 3e8;
+k = omega / c;                   
+l = pi / k; 
+f_theta = (1 ./ sin(theta)) .* (cos(cos(theta) .* k .* l / 2) - cos(k .* l / 2)).^2;
+
+% Plot the actual function
+figure;
+plot(rad2deg(theta), f_theta, 'b-', 'LineWidth', 2);
+hold on
+grid on 
+
+% Parameters for approximation
+N = 25; % Number of step intervals
+samples = round(linspace(1, 500, N+1)); % Indexes to step through
+f_approx = zeros(1, 500);
+
+for n = 1:N
+    idx_start = samples(n);
+    idx_end = samples(n+1) - 1;
+    mid_idx = idx_start %round((idx_start + idx_end)/2);
+    f_val = f_theta(mid_idx);  % approximate using midpoint
+    f_approx(idx_start:idx_end) = f_val;
+end
+
+% Plot approximated step function
+plot(rad2deg(theta), f_approx, 'r-', 'LineWidth', 2);
+%legend('Original Function', 'Step Function Approximation');
+title('Function vs Step Function Approximation');
+xlabel('\theta (degrees)');
+ylabel('f(\theta)');
+
